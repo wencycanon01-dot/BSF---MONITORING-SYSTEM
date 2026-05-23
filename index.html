@@ -183,7 +183,7 @@ function sendCtrl(dev, label) {
     if (dev === 'auto') document.getElementById('mode').innerText = newState === 1 ? "AUTO" : "MANUAL";
     db.ref("commands/" + dev).set(newState.toString());
     addLog(`CMD: ${dev.toUpperCase()} -> ${newState ? 'ON' : 'OFF'}`, "COMMAND");
-    setTimeout(() => { isSwitching = false; }, 2500); 
+    setTimeout(() => { isSwitching = false; }, 1200); 
 }
 
 function addLog(m, type) {
