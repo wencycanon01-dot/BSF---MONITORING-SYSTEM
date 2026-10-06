@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#0c1220"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🪰%3C/text%3E%3C/svg%3E">
+<title>BSF Smart Monitoring · University of Rizal System</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<style>
+:root{--bg:#0c1220;--c1:#141d30;--c2:#101828;--in:#0b111d;--line:#ffffff1a;--tx:#e8edf5;--mut:#95a3b8;--o1:#ffffff0b;--o2:#ffffff14;--on:#07201a;--lime:#46bfa0;--lime2:#2fa085;--red:#ef7a85;--blue:#6fa8ff;--b1:#e8c468;--b2:#a897e8;--b3:#46bfa0;--amber:#e6a85c}
+[data-theme=light]{--bg:#f2f5fa;--c1:#fff;--c2:#f6f8fc;--in:#eef2f8;--line:#1b27411f;--tx:#18233a;--mut:#5a687f;--o1:#1b27410b;--o2:#1b274114;--on:#fff;--lime:#1d8a73;--lime2:#157360;--red:#c8475a;--blue:#2c6fd1;--b1:#a87d1f;--b2:#6f5cc4;--b3:#1d8a73}
+.al{padding:12px 16px;border-radius:14px;margin-bottom:10px;background:color-mix(in srgb,var(--red) 14%,transparent);border:1px solid color-mix(in srgb,var(--red) 40%,transparent);font-size:13px;font-weight:600}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;font-family:'Sora',sans-serif;color:var(--tx);min-height:100vh;overflow-x:hidden;background:radial-gradient(1000px 520px at 90% -15%,color-mix(in srgb,var(--blue) 12%,transparent),transparent),radial-gradient(800px 480px at -10% 105%,color-mix(in srgb,var(--b2) 9%,transparent),transparent),var(--bg);background-attachment:fixed}
+button,input{font-family:inherit}:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.mono{font-family:'IBM Plex Mono',monospace}
+#login{position:fixed;inset:0;display:grid;place-items:center;padding:20px;background:radial-gradient(700px 400px at 50% 0,color-mix(in srgb,var(--lime) 12%,transparent),transparent),var(--bg);z-index:50;transition:opacity .4s}
+.lbox{width:100%;max-width:400px;background:linear-gradient(165deg,var(--c1),var(--c2));border:1px solid var(--line);border-radius:26px;padding:36px 28px;text-align:center;box-shadow:0 30px 70px -20px #000}
+.logo{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--lime);margin-bottom:14px;box-shadow:0 0 30px color-mix(in srgb,var(--lime) 20%,transparent)}
+.lbox h2{margin:0;font-size:23px}.lbox small{color:var(--mut)}
+.in{width:100%;padding:14px 16px;margin-top:10px;background:var(--in);border:1px solid var(--line);border-radius:13px;color:var(--tx);font-size:15px}
+.in:focus{border-color:var(--lime);outline:none}
+.pri{width:100%;margin-top:14px;padding:14px;border:0;border-radius:13px;background:linear-gradient(135deg,var(--lime),var(--lime2));color:var(--on);font-weight:700;font-size:14px;cursor:pointer}
+.lnk{color:var(--lime);cursor:pointer;font-weight:600}#lmsg{font-size:12px;margin:12px 0;min-height:16px}
+#app{display:none}
+header{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 28px 12px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}.brand img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1.5px solid var(--lime)}
+.brand b{font-size:16px;display:block;white-space:nowrap}.brand span{font-size:11px;color:var(--mut)}
+.right{display:flex;align-items:center;gap:10px}
+.ib{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--o1);color:var(--tx);cursor:pointer;font-size:16px}
+.me{display:flex;align-items:center;gap:9px;background:var(--o1);border:1px solid var(--line);border-radius:30px;padding:3px 14px 3px 3px;cursor:pointer;font-size:13px}.me img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.st{text-align:right}#status{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid currentColor;display:inline-block}
+#sync{font-size:10px;color:var(--mut);margin-top:3px}
+nav{display:flex;gap:6px;max-width:1400px;margin:18px auto 0;padding:0 28px;overflow-x:auto;scrollbar-width:none}
+nav button{flex:none;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;border:1px solid var(--line);background:var(--o1);color:var(--mut);font-weight:600;font-size:13px;cursor:pointer;transition:.2s}
+nav button i{font-style:normal;font-size:16px}nav button.on{background:var(--lime);color:var(--on);border-color:var(--lime)}
+main{max-width:1400px;margin:auto;padding:22px 28px 40px}
+.tab{display:none}.tab.on{display:block;animation:fd .35s}@keyframes fd{from{opacity:0;transform:translateY(8px)}}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.hero h1{margin:0;font-size:27px;letter-spacing:-.5px}.hero p{margin:6px 0 0;color:var(--mut);font-size:13px}
+.chip{display:inline-block;padding:7px 13px;border-radius:30px;background:var(--o2);border:1px solid var(--line);font-size:12px;font-weight:600;margin:2px 0 2px 6px}
+.g{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.card{position:relative;background:linear-gradient(165deg,var(--c1),var(--c2));border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 18px 40px -24px #000}
+.lab{font-size:13px;color:var(--mut);font-weight:600}
+.mc{overflow:hidden}.mc::before{content:'';position:absolute;inset:0 0 auto;height:3px;background:var(--c)}
+.mc::after{content:'';position:absolute;right:-40px;top:-40px;width:130px;height:130px;border-radius:50%;background:var(--c);opacity:.09;filter:blur(12px);pointer-events:none}
+.top{display:flex;justify-content:space-between;align-items:center}.ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;background:var(--o2)}
+.val{font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;margin:14px 0 2px;letter-spacing:-1px}
+.gauge{position:relative;height:6px;border-radius:6px;background:var(--o2);margin-top:18px}.gauge u{position:absolute;top:0;bottom:0;border-radius:6px;background:color-mix(in srgb,var(--lime) 25%,transparent)}
+.gauge i{position:absolute;top:-4px;left:0;width:4px;height:14px;border-radius:3px;background:var(--c);transform:translateX(-2px);transition:left .6s}
+.bd{display:inline-block;font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid currentColor}
+.ok{color:var(--lime)}.lo{color:var(--blue)}.hi{color:var(--red)}.off{color:var(--mut)}
+@keyframes pulse{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--red) 0%,transparent);border-color:var(--red)}}.card.alert{animation:pulse 1.4s infinite;box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 50%,transparent)}
+h3.sec{margin:30px 0 12px;font-size:16px}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px;margin-top:16px}
+.btn{padding:15px 10px;border-radius:14px;border:1px solid var(--line);background:var(--o1);color:var(--mut);font-weight:600;font-size:13px;cursor:pointer;transition:.2s}
+.btn:hover:not(:disabled){color:var(--tx);border-color:var(--mut)}.btn.onb{background:color-mix(in srgb,var(--lime) 15%,transparent);border-color:var(--lime);color:var(--lime)}.btn.autob{background:color-mix(in srgb,var(--blue) 15%,transparent);border-color:var(--blue);color:var(--blue)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.cams{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr))}
+.cam{border-top:3px solid var(--c)}.cam .h{display:flex;justify-content:space-between;font-size:13px;font-weight:600}.cam .h span:last-child{color:var(--c)}
+.cam img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px;background:#000;margin-top:12px;display:block}
+.split{display:grid;gap:16px;grid-template-columns:1fr 1.5fr;margin-top:16px}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;font-size:12px}.cgrid i{font-style:normal;color:var(--lime);font-weight:700;font-size:11px}
+.cgrid div{padding:8px 0;border-radius:9px}.cgrid .today{background:var(--lime);color:var(--on);font-weight:700}
+.ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:13px;font-weight:600}
+.ch button{background:var(--o2);border:1px solid var(--line);color:var(--tx);border-radius:9px;width:34px;height:30px;cursor:pointer}
+.log{height:250px;overflow-y:auto;font-size:12px;line-height:1.7;color:var(--mut);font-family:'IBM Plex Mono',monospace}.log div{border-bottom:1px solid var(--o2);padding:3px 0}
+.pred{border-top:3px solid var(--c)}.pred h4{margin:0 0 14px;color:var(--c);font-size:15px}
+.pb{display:flex;justify-content:space-between;align-items:center;background:var(--in);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--mut)}
+.pb b{font-family:'IBM Plex Mono',monospace;font-size:17px;color:var(--tx)}.fl{font-size:12px;color:var(--mut);font-weight:600;display:block;margin:14px 0 6px}
+.ch2{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font-size:14px;font-weight:600}.ch2 span{color:var(--mut);font-size:13px}
+.stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.stats span{font-size:11px;color:var(--mut);background:var(--o1);border-radius:20px;padding:4px 10px}.stats b{color:var(--tx);font-family:'IBM Plex Mono',monospace;margin-left:4px}
+.chart{height:220px;position:relative}.chart.tall{height:290px}.wide{grid-column:1/-1}
+.dg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));margin:16px 0}
+.dg .card{display:flex;gap:14px;align-items:center;padding:16px}.dg .card.err{border-color:var(--red)}.dg em{font-style:normal;font-size:26px}.dg small{color:var(--mut);font-size:11px;display:block}.dg b{font-family:'IBM Plex Mono',monospace;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}th,td{padding:10px;border:1px solid var(--line);text-align:left}th{background:var(--o1);color:var(--lime)}
+footer{text-align:center;color:var(--mut);font-size:11px;padding:30px 0 10px}
+.ov{position:fixed;inset:0;background:#000000c8;backdrop-filter:blur(4px);display:none;place-items:center;padding:18px;z-index:60}
+.mb{background:linear-gradient(165deg,var(--c1),var(--c2));border:1px solid var(--line);border-radius:22px;padding:28px;width:100%;max-width:360px;text-align:center}
+.mb.big{max-width:680px;max-height:85vh;overflow:auto;text-align:left;line-height:1.8;font-size:14px;color:var(--tx)}.mb.big h3{color:var(--lime);margin:22px 0 6px}.mb.big h2{margin:0}
+.can{width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--tx);cursor:pointer}
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:90}
+.toast{background:var(--lime);color:var(--on);padding:12px 18px;border-radius:13px;font-size:13px;font-weight:600;animation:in .3s}.toast.error{background:var(--red);color:#fff}.toast.info{background:var(--blue);color:var(--on)}
+@keyframes in{from{transform:translateX(30px);opacity:0}}
+@media(max-width:768px){
+header{padding:calc(10px + env(safe-area-inset-top)) 14px 10px}.brand span,.me span,#sync{display:none}.brand b{font-size:14px}.me{padding:3px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:30;margin:0;padding:8px 8px calc(8px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);justify-content:space-between;gap:2px}
+nav button{flex:1;flex-direction:column;gap:3px;padding:7px 2px;font-size:10px;border:0;background:none;border-radius:12px}nav button i{font-size:19px}nav button.on{background:color-mix(in srgb,var(--lime) 15%,transparent);color:var(--lime)}
+main{padding:18px 14px calc(100px + env(safe-area-inset-bottom))}.split{grid-template-columns:1fr}.val{font-size:34px}.hero h1{font-size:22px}.chip{margin:6px 6px 0 0}
+.ctl{grid-template-columns:1fr 1fr}.ctl #mode{grid-column:1/-1!important}#toasts{left:14px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom))}.chart{height:200px}.chart.tall{height:240px}}
+.lwrap{display:grid;grid-template-columns:1.1fr 420px;width:100%;max-width:980px;background:var(--c1);border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 40px 90px -30px #000}
+.lside{padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;gap:26px;background:linear-gradient(160deg,color-mix(in srgb,var(--lime) 18%,var(--c2)),var(--c2))}
+.lside h1{margin:0;font-size:30px;line-height:1.2;letter-spacing:-.6px}.lside p{color:var(--mut);line-height:1.7;font-size:14px;margin:12px 0 0}
+.lside ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:13px}.lside li{background:var(--o1);border:1px solid var(--line);border-radius:12px;padding:11px 14px}.lside small{color:var(--mut);font-size:11px}
+.lwrap .lbox{max-width:none;border:0;border-radius:0;box-shadow:none;background:var(--c1);display:flex;flex-direction:column;justify-content:center}
+#login{overflow:auto}.pw{position:relative}.pw button{position:absolute;right:8px;top:calc(50% + 5px);transform:translateY(-50%);background:none;border:0;color:var(--mut);cursor:pointer;padding:8px;font-size:15px}
+.caps{font-size:11px;color:var(--amber);min-height:14px;margin-top:6px;text-align:left}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:12px;margin-bottom:16px}.strip .card{padding:14px 16px;display:flex;flex-direction:column;gap:5px}.strip b{font-size:15px}
+.cam img{cursor:zoom-in}.cam img.zoom{position:fixed;inset:0;width:100vw;height:100vh;z-index:70;object-fit:contain;background:#000;border-radius:0;aspect-ratio:auto;margin:0;cursor:zoom-out}
+select.in{appearance:none;cursor:pointer;padding-right:30px}
+@media(max-width:820px){.lwrap{grid-template-columns:1fr;max-width:460px}.lside{order:2;padding:26px 22px}.lside h1{font-size:15px}.crew{grid-template-columns:1fr}#login{padding:14px;place-items:start center}}
+::selection{background:color-mix(in srgb,var(--lime) 35%,transparent)}*{scrollbar-width:thin;scrollbar-color:#8a94a644 transparent}
+.card{box-shadow:inset 0 1px 0 var(--o2),0 18px 40px -26px #000}
+header{box-shadow:0 1px 0 var(--line),0 12px 30px -20px #000}
+.eyebrow{color:var(--b1);letter-spacing:.14em;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:12px}
+.lside{padding:38px 36px;gap:22px}.lside h1{font-size:19px;line-height:1.45;letter-spacing:.3px;text-transform:uppercase;margin:0}.lside h1 i{text-transform:none;color:var(--lime)}
+.photo{position:relative;height:150px;border-radius:14px;border:1px dashed var(--line);display:grid;place-items:center;color:var(--mut);font-size:12px;overflow:hidden;background:var(--o1)}.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.crew{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}.crew small{color:var(--b1);text-transform:uppercase;font-size:10px;letter-spacing:.12em;font-weight:700}.lside .crew p{margin:7px 0 0;font-size:13px;line-height:1.75;color:var(--tx)}
+footer{line-height:1.8}footer b{font-weight:600}
+.lside{justify-content:center;gap:30px}
+.tm-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--lime) 16%,var(--c1)),var(--c1));padding:34px}
+.tm-hero h2{margin:0 0 12px;font-size:22px;line-height:1.45;text-transform:uppercase;letter-spacing:.3px}.tm-hero h2 i{text-transform:none;color:var(--lime)}.tm-hero p{margin:0;color:var(--mut);font-size:13px}
+.photo.big{height:280px;margin-top:16px;border-radius:20px}
+.pp{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:26px 16px}.pp b{font-size:15px}.pp .rl{font-size:12px;color:var(--mut)}
+.av{position:relative;width:88px;height:88px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:25px;color:var(--on);background:linear-gradient(135deg,var(--lime),var(--lime2));overflow:hidden;margin-bottom:8px;flex:none;box-shadow:0 0 0 4px var(--o2)}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.adv{display:flex;align-items:center;gap:20px;border-color:color-mix(in srgb,var(--b1) 45%,var(--line))}.adv .av{width:96px;height:96px;margin:0;background:linear-gradient(135deg,var(--b1),#b08a2e)}
+.adv small{color:var(--b1);text-transform:uppercase;font-size:10px;letter-spacing:.12em;font-weight:700}.adv b{display:block;font-size:19px;margin:5px 0 3px}.adv span.rl{color:var(--mut);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips span{font-size:12px;font-weight:600;padding:8px 14px;border-radius:30px;background:var(--o1);border:1px solid var(--line)}
+@media(max-width:768px){.tm-hero{padding:22px}.tm-hero h2{font-size:15px}.photo.big{height:200px}.adv{flex-direction:column;text-align:center}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="login"><div class="lwrap">
+<aside class="lside"><div><div class="eyebrow">Undergraduate thesis</div>
+<h1>Comparative Analysis of Feeding Substrates of Black Soldier Fly <i>(Hermetia illucens)</i> Using a Controlled Rearing Cage with AI-Assisted Yield Prediction</h1></div>
+<small>University of Rizal System · Electronics Engineering Department</small></aside>
+<div class="lbox"><img id="llogo" class="logo" style="margin:0 auto 14px" src="https://betterorigin.co.uk/wp-content/uploads/2021/05/shutterstock_1788085229-scaled-2.jpg" alt="">
+<h2 id="lt">Welcome back</h2><small>Sign in to the BSF monitoring dashboard</small>
+<input id="u" class="in" placeholder="Username" autocomplete="username" onblur="peek(this.value)">
+<div class="pw"><input id="p" class="in" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')auth()" onkeyup="$('caps').textContent=event.getModifierState&&event.getModifierState('CapsLock')?'Caps Lock is on':''"><button type="button" aria-label="Show or hide password" onclick="const x=$('p');x.type=x.type==='password'?'text':'password'">👁</button></div><div id="caps" class="caps"></div>
+<button id="lb" class="pri" onclick="auth()">Sign in</button><p id="lmsg"></p>
+<div id="tg" style="font-size:12px;color:var(--mut)">No account yet? <span class="lnk" onclick="flip()">Register</span></div></div></div></div>
+<div id="app">
+<header>
+<div class="brand"><img src="https://betterorigin.co.uk/wp-content/uploads/2021/05/shutterstock_1788085229-scaled-2.jpg" alt=""><div><b>BSF Monitoring</b><span>University of Rizal System · ECE Department</span></div></div>
+<div class="right"><button class="ib" id="th" onclick="theme()" aria-label="Toggle theme">🌙</button><button class="ib" onclick="show('bm')" aria-label="BSF manual">📖</button>
+<div class="st"><div id="status" class="off">Connecting</div><div id="sync" class="mono">Awaiting data</div></div>
+<div class="me" onclick="show('pm')" title="Profile"><img id="av" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='30' fill='%233a4352'/></svg>" alt=""><span id="un">User</span></div></div>
+</header>
+
+<nav id="nav"><button class="on" data-t="t1"><i>📊</i><span>Home</span></button><button data-t="t2"><i>🧠</i><span>AI yield</span></button><button data-t="t3"><i>📈</i><span>Analytics</span></button><button data-t="t4"><i>⚙️</i><span>Settings</span></button><button data-t="t5"><i>🛠️️</i><span>Hardware</span></button><button data-t="t6"><i>👥</i><span>Team</span></button></nav>
+
+<main>
+<section id="t1" class="tab on"><div class="hero"><div><h1 id="gr">Hello</h1><p>Live conditions across your black soldier fly colony</p></div><div><span class="chip" id="hm">Mode · --</span><span class="chip mono" id="hc"></span><span class="chip mono" id="hu">Uptime --</span></div></div>
+<div id="alerts"></div><div class="strip"><div class="card"><span class="lab">Connection</span><b id="sc">Waiting</b></div><div class="card"><span class="lab">Equipment running</span><b id="se">--</b></div><div class="card"><span class="lab">WiFi signal</span><b id="ss">--</b></div><div class="card"><span class="lab">Last data</span><b id="sa">--</b></div></div><div id="metrics" class="g"></div>
+<div class="ctl" id="ctl"></div>
+<h3 class="sec">Cage cameras</h3><div id="cams" class="cams"></div>
+<div class="split">
+<div class="card"><div class="ch"><button onclick="mon(-1)" aria-label="Previous month">‹</button><span id="cm"></span><button onclick="mon(1)" aria-label="Next month">›</button></div><div id="cd" class="cgrid"></div></div>
+<div class="card"><div class="lab">System activity</div><div id="log" class="log" style="margin-top:10px"></div></div>
+</div>
+</section>
+
+<section id="t2" class="tab"><div id="preds" class="g" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))"></div></section>
+
+<section id="t3" class="tab"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px"><select id="rng" class="in" style="width:auto;margin:0" onchange="RN=+this.value;render()"><option value="30">Last 30 readings</option><option value="60" selected>Last 60 readings</option><option value="120">Last 120 readings</option></select><button class="btn" onclick="csv()">Export CSV</button></div><div id="kpi" class="g" style="margin-bottom:16px"></div><div id="charts" class="g" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))"></div></section>
+
+<section id="t4" class="tab"><div class="card" style="max-width:480px;margin:auto">
+<h3 style="margin:0">ESP32 thresholds</h3><p class="lab">Auto mode switches the fan, heater and humidifier when readings leave these limits.</p>
+<label class="fl">Min temperature (°C)</label><input id="c1" type="number" class="in" style="margin:0">
+<label class="fl">Max temperature (°C)</label><input id="c2" type="number" class="in" style="margin:0">
+<label class="fl">Min humidity (%)</label><input id="c3" type="number" class="in" style="margin:0">
+<label class="fl">Max humidity (%)</label><input id="c4" type="number" class="in" style="margin:0">
+<button class="pri" onclick="saveCfg()">Sync to ESP32</button><button class="can" onclick="defCfg()">Load default limits</button></div><div class="card" style="max-width:480px;margin:16px auto 0"><h3 style="margin:0 0 6px">Preferences</h3><p class="lab">Get a desktop notification when a reading goes out of range while this tab is in the background.</p><button class="can" onclick="notif()">Enable notifications</button><button class="can" onclick="clearHist()">Clear saved graph history</button></div></section>
+
+<section id="t5" class="tab">
+<div class="card"><div class="lab">Hardware warnings</div><div id="hw" class="log" style="height:120px;margin-top:10px"><div style="color:var(--lime)">No warnings yet.</div></div></div>
+<div class="dg">
+<div class="card" id="dwifi"><em>📶</em><div><small>WiFi signal</small><b id="wifi">--</b></div></div>
+<div class="card"><em>⚡</em><div><small>Supply voltage</small><b id="vcc">--</b></div></div>
+<div class="card"><em>🧠</em><div><small>Free heap</small><b id="heap">--</b></div></div>
+<div class="card"><em>⏱️️</em><div><small>ESP32 uptime</small><b id="up">--</b></div></div>
+<div class="card" id="dst"><em id="dsi">✅</em><div><small>Hardware status</small><b id="ds">OK</b></div></div>
+</div>
+<div class="card" style="overflow-x:auto"><div class="lab" style="margin-bottom:10px">GPIO pinout</div><table>
+<tr><th>Component</th><th>GPIO</th><th>Interface</th></tr>
+<tr><td>DHT11 ×3</td><td>13, 14, 27</td><td>Single-wire digital</td></tr>
+<tr><td>MQ-135 ammonia</td><td>34</td><td>Analog, 12-bit</td></tr>
+<tr><td>BH1750 light</td><td>21 (SDA), 22 (SCL)</td><td>I2C</td></tr>
+<tr><td>Relays: heater, fan, humidifier, light</td><td>25, 26, 33, 17</td><td>Digital out, active low</td></tr>
+<tr><td>Manual switches: fan, heater, humidifier, light</td><td>32, 16, 18, 15</td><td>Pull-up, active low</td></tr>
+<tr><td>Mode switch: auto, manual</td><td>4, 19</td><td>Pull-up, active low</td></tr>
+<tr><td>Mode LEDs: auto, manual</td><td>23, 2</td><td>Digital out</td></tr></table></div>
+</section>
+<section id="t6" class="tab">
+<div class="card tm-hero"><div class="eyebrow">Undergraduate thesis · BS Electronics Engineering</div>
+<h2>Comparative Analysis of Feeding Substrates of Black Soldier Fly <i>(Hermetia illucens)</i> Using a Controlled Rearing Cage with AI-Assisted Yield Prediction</h2>
+<p>University of Rizal System · Electronics Engineering Department</p></div>
+<div class="photo big"><span>Research team photo</span><img src="team.jpg" alt="Research team" onerror="this.remove()"></div>
+<h3 class="sec">Researchers</h3><div id="team" class="g"></div>
+<h3 class="sec">Research adviser</h3><div id="adv"></div>
+<h3 class="sec">Feeding substrates under study</h3>
+<div class="g"><div class="card pred" style="--c:var(--b1)"><h4>🍌 Banana peels · Cage 01</h4><p class="lab">High in potassium and carbohydrates, a strong energy source that needs careful moisture control.</p></div>
+<div class="card pred" style="--c:var(--b2)"><h4>🧈 Tofu okara · Cage 02</h4><p class="lab">Very rich in crude protein, which supports dense prepupal mass but ferments and heats up quickly.</p></div>
+<div class="card pred" style="--c:var(--b3)"><h4>♻️ Mixed food waste · Cage 03</h4><p class="lab">The baseline substrate, representing typical municipal and agricultural organic waste.</p></div></div>
+<h3 class="sec">System at a glance</h3>
+<div class="card"><div class="chips"><span>ESP32 controller</span><span>3 × DHT11 temperature and humidity</span><span>MQ-135 ammonia</span><span>BH1750 light</span><span>4-channel relay control</span><span>3 cage cameras</span><span>Raspberry Pi AI models</span><span>Random Forest · Decision Tree · KNN</span><span>Firebase Realtime Database</span></div></div>
+</section>
+<footer>University of Rizal System · Electronics Engineering Department · AI-Assisted Black Soldier Fly Monitoring System © 2026</footer>
+</main>
+</div>
+
+<div id="bm" class="ov" onclick="if(event.target===this)hide('bm')"><div class="mb big">
+<button class="can" style="width:auto;float:right;margin:0;padding:6px 12px" onclick="hide('bm')">Close</button>
+<h2>BSF operations manual</h2>
+<h3>What is a black soldier fly?</h3><p>Hermetia illucens is a harmless insect whose larvae rapidly consume organic waste. Adults have no functional mouthparts, do not bite and do not spread disease.</p>
+<h3>Life cycle</h3><p>Egg, larva, prepupa, pupa, adult. The larval stage lasts about 14 to 21 days and does the bioconversion. Prepupae leave the substrate on their own to pupate, which makes harvesting easy.</p>
+<h3>Why it matters</h3><p>Diverting waste from landfills cuts methane, and the larvae turn low-value waste into protein-rich feed (up to about 42% protein) and frass fertilizer. They also reduce E. coli and Salmonella in the substrate.</p>
+<h3>This study</h3><p>The system watches the microclimate and compares three substrates: <b>banana peels</b> (Cage 01), <b>tofu okara</b> (Cage 02) and <b>mixed food waste</b> (Cage 03).</p>
+</div></div>
+
+<div id="pm" class="ov" onclick="if(event.target===this)hide('pm')"><div class="mb">
+<h3 style="margin-top:0">Profile picture</h3>
+<img id="pv" class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><circle cx='30' cy='30' r='30' fill='%233a4352'/></svg>" alt="Preview">
+<input type="file" id="fi" accept="image/png,image/jpeg" style="width:100%;color:var(--mut);font-size:12px">
+<button class="pri" onclick="savePic()">Save picture</button><button class="can" onclick="hide('pm')">Cancel</button><button class="can" style="color:var(--red)" onclick="logout()">Log out</button>
+</div></div>
+<div id="toasts"></div>
+
+<script>
+const $=i=>document.getElementById(i),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+firebase.initializeApp({databaseURL:"https://bsf-dashboard-506ac-default-rtdb.firebaseio.com/"});
+const db=firebase.database();
+let lastFreshAt=0,lastAl='',RN=60,fails=0,lockUntil=0;
+let me='',reg=false,cool=false,last={},seen=null,wd,lastErr='';
+const cfg={minTemp:25,maxTemp:35,minHum:60,maxHum:85};
+const show=i=>$(i).style.display='grid',hide=i=>$(i).style.display='none';
+const toast=(m,t='success')=>{const e=document.createElement('div');e.className='toast '+t;e.textContent=m;$('toasts').append(e);setTimeout(()=>e.remove(),3500)};
+const sha=async s=>window.crypto&&crypto.subtle?[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join(''):null;
+
+const M=[
+{k:'temperature',id:'temp',l:'Temperature',i:'🌡️',u:'°C',d:1,c:'#ef7a85',lo:()=>cfg.minTemp,hi:()=>cfg.maxTemp},
+{k:'humidity',id:'hum',l:'Humidity',i:'💧',u:'%',d:1,c:'#6fa8ff',lo:()=>cfg.minHum,hi:()=>cfg.maxHum},
+{k:'light',id:'lux',l:'Light level',i:'☀️',u:' lx',d:0,c:'#e8c468',lo:()=>1,hi:()=>1e5},
+{k:'ammonia',id:'nh3',l:'Ammonia',i:'☣️',u:' ppm',d:1,c:'#a897e8',lo:()=>0,hi:()=>50}];
+$('metrics').innerHTML=M.map(m=>`<div class="card mc" id="k-${m.id}" style="--c:${m.c}"><div class="top"><span class="ic">${m.i}</span><span class="bd off" id="b-${m.id}">Offline</span></div><div class="val" id="v-${m.id}">--</div><div class="lab">${m.l}</div><div class="gauge"><u id="z-${m.id}"></u><i id="p-${m.id}"></i></div></div>`).join('');
+$('charts').innerHTML=`<div class="card wide"><div class="ch2"><b>Temperature vs humidity</b><span>Live overview</span></div><div class="chart tall"><canvas id="ch-combo"></canvas></div></div>`+M.map(m=>`<div class="card"><div class="ch2"><b>${m.l}</b><span class="mono" id="cn-${m.id}">--</span></div><div class="stats" id="st-${m.id}"></div><div class="chart"><canvas id="ch-${m.id}"></canvas></div></div>`).join('');
+Chart.defaults.color='#8a94a6';Chart.defaults.font.family='Sora';
+$('charts').insertAdjacentHTML('beforeend',`<div class="card"><div class="ch2"><b>Time in safe range</b><span>% of readings</span></div><div class="chart"><canvas id="ch-safe"></canvas></div></div><div class="card"><div class="ch2"><b>Equipment duty cycle</b><span>% of time on</span></div><div class="chart"><canvas id="ch-duty"></canvas></div></div><div class="card wide"><div class="ch2"><b>Temperature vs humidity relationship</b><span>each dot is one reading</span></div><div class="chart tall"><canvas id="ch-sc"></canvas></div></div>`);
+M[0].ln=[()=>cfg.minTemp,()=>cfg.maxTemp];M[1].ln=[()=>cfg.minHum,()=>cfg.maxHum];M[3].ln=[()=>50];
+const HN=120,GR={color:'#8a94a622'},TK={color:'#8a94a6'};let hist=[];try{hist=JSON.parse(localStorage.getItem('bsfHist'))||[]}catch(e){}
+const grad=(x,c)=>{const a=x.chart.chartArea;if(!a)return c+'22';const g=x.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,c+'66');g.addColorStop(1,c+'00');return g};
+const opt=(extra={})=>({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#161b22',borderColor:'#8a94a655',borderWidth:1,padding:10}},scales:{x:{grid:GR,ticks:{...TK,maxTicksLimit:6}},y:{grid:GR,ticks:TK},...extra}});
+M.forEach(m=>{const ds=[{data:[],borderColor:m.c,backgroundColor:x=>grad(x,m.c),fill:true,borderWidth:2.2,tension:.4,pointRadius:0,pointHoverRadius:5}];(m.ln||[]).forEach(()=>ds.push({data:[],borderColor:'#8a94a688',borderDash:[6,5],borderWidth:1,pointRadius:0,fill:false}));m.chart=new Chart($('ch-'+m.id),{type:'line',data:{labels:[],datasets:ds},options:opt()})});
+const combo=new Chart($('ch-combo'),{type:'line',data:{labels:[],datasets:[{label:'Temperature (°C)',data:[],borderColor:'#ef7a85',borderWidth:2.2,tension:.4,pointRadius:0,yAxisID:'y'},{label:'Humidity (%)',data:[],borderColor:'#6fa8ff',borderWidth:2.2,tension:.4,pointRadius:0,yAxisID:'y1'}]},options:{...opt({y1:{position:'right',grid:{drawOnChartArea:false},ticks:TK}}),plugins:{legend:{display:true,labels:{color:'#a3aebd',boxWidth:10,usePointStyle:true}}}}});
+function render(){const hs=hist.slice(-RN);const L=hs.map(h=>h.t);M.forEach(m=>{const c=m.chart,a=hs.map(h=>h[m.k]);c.data.labels=L;c.data.datasets[0].data=a;(m.ln||[]).forEach((f,i)=>c.data.datasets[i+1].data=a.map(()=>f()));c.update('none');
+if(a.length){const av=a.reduce((x,y)=>x+y,0)/a.length;$('st-'+m.id).innerHTML=[['Avg',av],['Min',Math.min(...a)],['Max',Math.max(...a)]].map(x=>`<span>${x[0]}<b>${x[1].toFixed(m.d)}</b></span>`).join('');$('cn-'+m.id).textContent=a[a.length-1].toFixed(m.d)+m.u}});
+combo.data.labels=L;combo.data.datasets[0].data=hs.map(h=>h.temperature);combo.data.datasets[1].data=hs.map(h=>h.humidity);combo.update('none');extra()}
+const bar=(id,lb,cl,hz)=>new Chart($(id),{type:'bar',data:{labels:lb,datasets:[{data:lb.map(()=>0),backgroundColor:cl,borderRadius:8,maxBarThickness:34}]},options:{...opt(),indexAxis:hz?'y':'x',scales:{[hz?'x':'y']:{min:0,max:100,grid:GR,ticks:TK},[hz?'y':'x']:{grid:{display:false},ticks:TK}}}});
+const safe=bar('ch-safe',['Temperature','Humidity','Ammonia'],['#ef7a85cc','#6fa8ffcc','#a897e8cc'],1),duty=bar('ch-duty',['Heater','Fan','Light','Humidifier'],['#e8c468cc','#6fa8ffcc','#46bfa0cc','#a897e8cc'],0);
+const ax=t=>({title:{display:true,text:t,color:'#8a94a6'},grid:GR,ticks:TK});
+const sc=new Chart($('ch-sc'),{type:'scatter',data:{datasets:[{data:[],backgroundColor:'#46bfa0aa',pointRadius:4}]},options:{...opt(),scales:{x:ax('Temperature (°C)'),y:ax('Humidity (%)')}}});
+function extra(){const hs=hist.slice(-RN);const n=hs.length||1,pc=f=>Math.round(hs.filter(f).length/n*100),av=k=>hs.length?(hs.reduce((q,h)=>q+h[k],0)/hs.length).toFixed(1):'--';
+const sf=[pc(h=>h.temperature>=cfg.minTemp&&h.temperature<=cfg.maxTemp),pc(h=>h.humidity>=cfg.minHum&&h.humidity<=cfg.maxHum),pc(h=>h.ammonia<=50)];
+safe.data.datasets[0].data=sf;safe.update('none');duty.data.datasets[0].data=['rh','rf','rl','ru'].map(k=>pc(h=>h[k]===1));duty.update('none');sc.data.datasets[0].data=hs.map(h=>({x:h.temperature,y:h.humidity}));sc.update('none');
+$('kpi').innerHTML=[['Readings in range',hs.length,''],['Average temperature',av('temperature'),'°C'],['Average humidity',av('humidity'),'%'],['Overall in safe range',hs.length?Math.round(sf.reduce((a,b)=>a+b,0)/3):'--','%']].map(x=>`<div class="card"><div class="lab">${x[0]}</div><div class="val" style="font-size:30px">${x[1]}<small style="font-size:14px;color:var(--mut)"> ${x[2]}</small></div></div>`).join('')}
+function pushPt(t,d){hist.push({t,temperature:+d.temperature||0,humidity:+d.humidity||0,light:+d.light||0,ammonia:+d.ammonia||0,rh:d.heaterStatus,rf:d.fanStatus,rl:d.lightStatus,ru:d.humStatus});hist=hist.slice(-HN);try{localStorage.setItem('bsfHist',JSON.stringify(hist))}catch(e){}render()}
+function gauge(m,v){const lo=m.lo(),hi=m.hi(),mx=m.id==='lux'?Math.max(1000,v*1.2):hi*1.25,z=$('z-'+m.id);z.style.left=Math.min(lo/mx,1)*100+'\%';z.style.width=Math.max(0,Math.min(hi,mx)-lo)/mx*100+'\%';$('p-'+m.id).style.left=Math.min(v/mx,1)*100+'%'}
+render();
+
+const R=[['heater','heaterStatus','🔥 Heater'],['fan','fanStatus','🌀 Fan'],['light','lightStatus','💡 Light'],['humidifier','humStatus','💧 Humidifier']];
+$('ctl').innerHTML=R.map(r=>`<button class="btn" id="r-${r[0]}" onclick="ctrl('${r[0]}','${r[2]}')">${r[2]} off</button>`).join('')+`<button class="btn" id="mode" onclick="toggleMode()" style="grid-column:span 2">🤖 Mode: <b id="mt">--</b></button>`;
+const lockAll=v=>[...R.map(r=>'r-'+r[0]),'mode'].forEach(i=>$(i).disabled=v);
+
+const CAMS=[['Cage 01','Banana','var(--b1)','http://10.204.97.16/stream'],['Cage 02','Tofu','var(--b2)','http://192.168.11.115:81/stream'],['Cage 03','Food waste','var(--b3)','http://192.168.11.116:81/stream']];
+const ph=n=>"data:image/svg+xml;utf8,"+encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='400' height='200'><rect width='100%' height='100%' fill='#0f1318'/><text x='50%' y='50%' font-family='monospace' font-size='14' fill='#8a94a6' text-anchor='middle'>${n} offline</text></svg>`);
+$('cams').innerHTML=CAMS.map((c,i)=>`<div class="card cam" style="--c:${c[2]}"><div class="h"><span>📷 ${c[0]}</span><span>${c[1]}</span></div><img id="cam${i}" alt="${c[0]} stream"></div>`).join('');
+CAMS.forEach((c,i)=>{const e=$('cam'+i);e.onerror=()=>{if(e.dataset.err)return;e.dataset.err=1;e.src=ph(c[0])};e.onclick=()=>e.classList.toggle('zoom');e.src=c[3]});
+setInterval(()=>CAMS.forEach((c,i)=>{const e=$('cam'+i);if(e.dataset.err){delete e.dataset.err;e.src=c[3]+'?t='+Date.now()}}),30000);
+
+const P=[['Banana','banana','var(--b1)'],['Tofu','tofu','var(--b2)'],['Food Waste','foodwaste','var(--b3)']];
+$('preds').innerHTML=P.map(p=>`<div class="card pred" style="--c:${p[2]}"><h4>${p[0]} prediction</h4><label class="fl" style="margin-top:0">Food amount (grams)</label><input id="in-${p[1]}" type="number" min="1" class="in" style="margin:0" placeholder="e.g. 500"><button class="btn" style="width:100%;margin-top:10px" onclick="predict('${p[0]}','${p[1]}')">Run AI model (RPI)</button>${['RF|Random forest','DT|Decision tree','KNN|KNN'].map(a=>{const[s,n]=a.split('|');return`<div class="pb">${n}<b id="o-${p[1]}-${s}">-- g</b></div>`}).join('')}</div>`).join('');
+function predict(n,id){const g=parseFloat($('in-'+id).value);if(!(g>0))return toast('Enter a food amount above 0 g','error');
+db.ref('web_inputs').update({[id+'_feed_grams']:g,timestamp:new Date().toISOString()}).then(()=>{toast(`Sent ${g} g for ${n}`);addLog(`AI: sent ${g} g to Raspberry Pi for ${n}`,'cmd');['RF','DT','KNN'].forEach(a=>$(`o-${id}-${a}`).textContent='Calculating...');
+setTimeout(()=>['RF','DT','KNN'].forEach(a=>{const e=$(`o-${id}-${a}`);if(e.textContent==='Calculating...')e.textContent='No reply'}),30000)})}
+db.ref('web_predictions').on('value',s=>{const d=s.val();if(!d)return;P.forEach(p=>{const x=d[p[0]];if(x)['RF','DT','KNN'].forEach(a=>{if(x[a]!==undefined)$(`o-${p[1]}-${a}`).textContent=x[a]+' g'})})});
+
+db.ref('systemConfig').on('value',s=>{const c=s.val();if(!c)return;['minTemp','maxTemp','minHum','maxHum'].forEach(k=>{const n=parseFloat(c[k]);if(!isNaN(n))cfg[k]=n});[cfg.minTemp,cfg.maxTemp,cfg.minHum,cfg.maxHum].forEach((v,i)=>$('c'+(i+1)).value=v)});
+function saveCfg(){const v=[1,2,3,4].map(i=>parseFloat($('c'+i).value));if(v.some(isNaN))return toast('Fill in all four limits','error');
+if(v[0]>=v[1]||v[2]>=v[3])return toast('Minimum must be lower than maximum','error');
+db.ref('systemConfig').update({minTemp:v[0],maxTemp:v[1],minHum:v[2],maxHum:v[3]}).then(()=>{toast('Thresholds synced to ESP32');addLog(`CONFIG: thresholds updated by ${me}`,'cmd')})}
+
+function flip(){reg=!reg;$('lt').textContent=reg?'Create account':'Welcome back';$('lb').textContent=reg?'Register':'Sign in';$('tg').innerHTML=reg?'Have an account? <span class="lnk" onclick="flip()">Sign in</span>':'No account yet? <span class="lnk" onclick="flip()">Register</span>';$('lmsg').textContent=''}
+const msg=(t,ok)=>{const m=$('lmsg');m.textContent=t;m.style.color=ok?'var(--lime)':'var(--red)'};
+function peek(u){u=u.trim();if(!u)return;db.ref('systemUsers/'+u+'/profilePic').once('value').then(s=>{if(s.exists())$('llogo').src=s.val()})}
+async function auth(){const b=$('lb');b.disabled=true;b.textContent='Please wait...';try{await auth0()}catch(e){msg('Cannot reach the database. Check your internet connection.')}finally{b.disabled=false;b.textContent=reg?'Register':'Sign in'}}
+async function auth0(){if(Date.now()<lockUntil)return msg('Too many attempts. Try again in '+Math.ceil((lockUntil-Date.now())/1000)+'s');const u=$('u').value.trim(),p=$('p').value;if(!u||!p)return msg('Fill in both fields');if(/[.#$\[\]\/]/.test(u))return msg('Username cannot contain . # $ [ ] /');
+const ref=db.ref('systemUsers/'+u),h=await sha(p),snap=await ref.once('value');
+if(reg){if(snap.exists())return msg('Username already taken');await ref.set(h?{passHash:h}:{password:p});msg('Account created. Sign in now.',1);setTimeout(flip,1200);return}
+if(u==='admin'&&p==='thesis2026')return enter('admin');
+const v=snap.val();if(v&&((h&&v.passHash===h)||v.password===p)){if(h&&v.password===p)ref.update({passHash:h,password:null});enter(u)}else{msg('Wrong username or password');if(++fails>=5){lockUntil=Date.now()+30000;fails=0}}}
+function enter(u){me=u;try{localStorage.setItem('bsfUser',u)}catch(e){}
+$('un').textContent=u;{const h=new Date().getHours();$('gr').textContent=(h<12?'Good morning':h<18?'Good afternoon':'Good evening')+', '+u}db.ref('systemUsers/'+u+'/profilePic').once('value').then(s=>{if(s.exists()){$('av').src=s.val();$('pv').src=s.val()}});$('login').style.opacity=0;setTimeout(()=>{$('login').style.display='none';$('app').style.display='block';drawCal();addLog(`LOGIN: ${u} signed in`,'ok');toast('Welcome, '+u,'info')},400)}
+function logout(){try{localStorage.removeItem('bsfUser')}catch(e){}location.reload()}
+try{const s=localStorage.getItem('bsfUser');if(s)enter(s)}catch(e){}
+
+$('fi').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=x=>$('pv').src=x.target.result;r.readAsDataURL(f)};
+function savePic(){if(!$('fi').files[0])return toast('Choose an image first','error');const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=150;const s=Math.min(im.width,im.height);c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,150,150);const b=c.toDataURL('image/jpeg',.8);
+db.ref('systemUsers/'+me+'/profilePic').set(b).then(()=>{$('av').src=b;$('llogo').src=b;hide('pm');toast('Profile picture updated')})};im.src=$('pv').src}
+
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;document.querySelectorAll('.tab,nav button').forEach(x=>x.classList.remove('on'));$(b.dataset.t).classList.add('on');b.classList.add('on');window.scrollTo({top:0,behavior:'smooth'})});
+
+function setOffline(){$('status').textContent='Offline';$('sc').textContent='Offline';$('status').className='hi';$('sync').textContent='Hardware disconnected';
+M.forEach(m=>{$('v-'+m.id).textContent='--';$('b-'+m.id).textContent='Offline';$('b-'+m.id).className='bd hi';$('k-'+m.id).classList.remove('alert')});lockAll(true);$('dst').classList.add('err');$('dsi').textContent='❌';$('ds').textContent='Offline';hw('ESP32 connection timeout. Check power and WiFi.');addLog('Hardware connection lost. Controls locked.','err')}
+function hw(t){const h=$('hw');if(h.textContent.includes('No warnings'))h.innerHTML='';h.insertAdjacentHTML('afterbegin',`<div><span style="color:var(--mut)">${new Date().toLocaleTimeString()}</span> <span style="color:var(--red)">⚠️ ${esc(t)}</span></div>`)}
+db.ref('sensorData').on('value',s=>{const d=s.val();if(!d||d.temperature===undefined)return;last=d;
+if(d.lastSeen!==seen){seen=d.lastSeen;clearTimeout(wd);wd=setTimeout(setOffline,45000);const n=new Date();$('status').textContent='Online';$('status').className='ok';lastFreshAt=Date.now();$('sc').textContent='Online';$('sync').textContent='Updated '+n.toLocaleTimeString();
+const t=n.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+pushPt(t,d)}
+M.forEach(m=>{const v=Number(d[m.k])||0,b=$('b-'+m.id),k=$('k-'+m.id);$('v-'+m.id).textContent=v.toFixed(m.d)+m.u;gauge(m,v);
+if(v>m.hi()){b.textContent='Critical';b.className='bd hi';k.classList.add('alert')}else if(v<m.lo()){b.textContent='Low';b.className='bd lo';k.classList.remove('alert')}else{b.textContent='Optimal';b.className='bd ok';k.classList.remove('alert')}});
+{const a=[];M.forEach(m=>{const v=Number(d[m.k])||0;if(v>m.hi())a.push(`${m.l} is above the limit (${v.toFixed(m.d)}${m.u})`);else if(v<m.lo()&&m.id!=='lux')a.push(`${m.l} is below the minimum (${v.toFixed(m.d)}${m.u})`)});if(d.sys_error&&d.sys_error!=='None')a.push(d.sys_error);{const k=a.join('|');document.title=(a.length?'('+a.length+') ':'')+'BSF Monitoring';if(k&&k!==lastAl&&window.Notification&&Notification.permission==='granted'&&document.hidden)new Notification('BSF alert',{body:a[0]});lastAl=k}$('alerts').innerHTML=a.map(x=>`<div class="al">⚠️ ${esc(x)}</div>`).join('')}
+{const w=d.wifi_rssi;$('se').textContent=R.filter(r=>d[r[1]]===1).length+' of 4 on';if(w!==undefined)$('ss').textContent=(w>-60?'Excellent':w>-70?'Good':w>-85?'Fair':'Weak')+' · '+w+' dBm'}
+if(d.wifi_rssi!==undefined){$('wifi').textContent=d.wifi_rssi+' dBm';$('dwifi').classList.toggle('err',d.wifi_rssi<-85)}
+if(d.heap_free!==undefined)$('heap').textContent=d.heap_free+' KB';if(d.vcc!==undefined)$('vcc').textContent=d.vcc+' V';if(d.uptime){$('up').textContent=d.uptime;$('hu').textContent='Uptime '+d.uptime}
+const bad=d.sys_error&&d.sys_error!=='None';$('dst').classList.toggle('err',!!bad);$('dsi').textContent=bad?'⚠️':'✅';$('ds').textContent=bad?d.sys_error:'OK';
+if(bad&&d.sys_error!==lastErr)hw('ESP32: '+d.sys_error);lastErr=bad?d.sys_error:'';
+const m=d.autoMode,mb=$('mode');
+if(m===-1){mt('SYSTEM OFF (LOCKED)','var(--red)');mb.className='btn';lockAll(true)}
+else if(m===1){mt('AUTO','var(--blue)');mb.className='btn autob';lockAll(false);R.forEach(r=>$('r-'+r[0]).disabled=true)}
+else{mt('MANUAL','var(--tx)');mb.className='btn';lockAll(false)}
+R.forEach(r=>{const e=$('r-'+r[0]),on=d[r[1]]===1;e.classList.toggle('onb',on);e.textContent=r[2]+(on?' on':' off')})});
+const mt=(t,c)=>{$('mt').textContent=t;$('mt').style.color=c;$('hm').textContent='Mode · '+t};
+
+function toggleMode(){if(cool)return toast('Please wait a moment','info');if(last.autoMode===-1)return toast('System is switched off at the physical switch','error');
+const n=last.autoMode===1?0:1;db.ref('commands/auto').set(String(n)).then(()=>{addLog(`CMD: auto mode ${n?'on':'off'} by ${me}`,'cmd');toast('Mode: '+(n?'AUTO':'MANUAL'),'info')});cd()}
+function ctrl(dev,label){if(last.autoMode===-1)return toast('System is switched off at the physical switch','error');if(last.autoMode===1)return toast('Turn off Auto mode first','error');if(cool)return toast('Command in progress, wait a moment','info');
+const n=$('r-'+dev).classList.contains('onb')?0:1;db.ref('commands/'+dev).set(String(n)).then(()=>{addLog(`CMD: ${dev} ${n?'on':'off'} by ${me}`,'cmd');toast(`${label} ${n?'on':'off'}`)});cd()}
+const cd=()=>{cool=true;setTimeout(()=>cool=false,1500)};
+
+function addLog(m,t){const l=$('log');if(!l)return;const c=t==='cmd'?'var(--blue)':t==='err'?'var(--red)':'var(--lime)';
+l.insertAdjacentHTML('beforeend',`<div><span style="color:var(--mut)">${new Date().toLocaleTimeString()}</span> <span style="color:var(--b2)">@${esc(me||'system')}</span> <span style="color:${c}">${esc(m)}</span></div>`);while(l.children.length>100)l.firstChild.remove();l.scrollTop=l.scrollHeight}
+function theme(v){const t=v||(document.documentElement.dataset.theme==='light'?'dark':'light');document.documentElement.dataset.theme=t;$('th').textContent=t==='light'?'☀️':'🌙';try{localStorage.setItem('bsfTheme',t)}catch(e){}}
+try{theme(localStorage.getItem('bsfTheme')||'dark')}catch(e){theme('dark')}
+function defCfg(){[25,35,60,85].forEach((v,i)=>$('c'+(i+1)).value=v);toast('Default limits loaded. Press Sync to apply.','info')}
+function notif(){if(!window.Notification)return toast('Notifications are not supported on this browser','error');Notification.requestPermission().then(p=>toast(p==='granted'?'Notifications enabled':'Notifications blocked',p==='granted'?'success':'error'))}
+function clearHist(){hist=[];try{localStorage.removeItem('bsfHist')}catch(e){}render();toast('Graph history cleared','info')}
+setInterval(()=>{if(!lastFreshAt)return;const x=Math.round((Date.now()-lastFreshAt)/1000);$('sa').textContent=x<60?x+'s ago':Math.floor(x/60)+'m ago'},1000);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.querySelectorAll('.zoom').forEach(x=>x.classList.remove('zoom'));['bm','pm'].forEach(hide)}});
+
+/* Dito inayos ang mga tamang pangalan at extension ng larawan ng Team at Adviser */
+const TM=[
+  ['Wency C. Canon','WC','wency.png'],
+  ['Hyacinth I. Dañga','HD','hyacinth.png'],
+  ['Adrian T. Delos Santos','AD','adrian.png'],
+  ['Sandara C. Dolliente','SD','Sandara.png']
+];
+$('team').innerHTML=TM.map(t=>`<div class="card pp"><div class="av">${t[1]}<img src="${t[2]}" alt="${t[0]}" onerror="this.remove()"></div><b>${t[0]}</b><span class="rl">Researcher</span></div>`).join('');
+$('adv').innerHTML=`<div class="card adv"><div class="av">JA<img src="Jenadel.jpg" alt="Engr. Jenadel DL. Antipolo" onerror="this.remove()"></div><div><small>Research adviser</small><b>Engr. Jenadel DL. Antipolo</b><span class="rl">University of Rizal System · Electronics Engineering Department</span></div></div>`;
+
+setInterval(()=>{$('hc').textContent=new Date().toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})},1000);
+function csv(){const m=M[0].chart.data.labels;if(!m.length)return toast('No data to export yet','error');let o='Time,Temperature (C),Humidity (%),Light (lux),Ammonia (ppm)\n';m.forEach((t,i)=>o+=[t,...M.map(x=>x.chart.data.datasets[0].data[i])].join(',')+'\n');
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([o],{type:'text/csv'}));a.download='BSF_Sensor_Data.csv';a.click();URL.revokeObjectURL(a.href);addLog(`SYSTEM: data exported by ${me}`,'ok');toast('Data exported')}
+
+let cur=new Date();
+function drawCal(){const n=new Date(),f=new Date(cur.getFullYear(),cur.getMonth(),1).getDay(),t=new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate();
+$('cm').textContent=cur.toLocaleString('default',{month:'long',year:'numeric'});
+let h=['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<i>${d}</i>`).join('')+'<div></div>'.repeat(f);
+for(let d=1;d<=t;d++)h+=`<div class="${d===n.getDate()&&cur.getMonth()===n.getMonth()&&cur.getFullYear()===n.getFullYear()?'today':''}">${d}</div>`;$('cd').innerHTML=h}
+const mon=v=>{cur.setMonth(cur.getMonth()+v);drawCal()};
+</script>
+</body>
+</html>
